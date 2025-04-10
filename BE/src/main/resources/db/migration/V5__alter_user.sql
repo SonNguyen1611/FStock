@@ -1,0 +1,1 @@
+alter table User add user_name varchar(255)

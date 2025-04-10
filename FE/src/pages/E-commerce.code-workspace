@@ -1,0 +1,13 @@
+{
+  "folders": [
+	{
+		"path": "../../.."
+	},
+	{
+		"path": "../../../../Home/Dự án cá nhân/webofson"
+	}
+],
+  "settings": {
+    "liveServer.settings.multiRootWorkspaceName": "webofson"
+  }
+}
