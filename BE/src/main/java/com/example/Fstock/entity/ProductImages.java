@@ -17,12 +17,11 @@ public class ProductImages {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Integer productImagesId;
-    @Column(nullable = false)
+    @Column
     private String productImagesName;
     @Column(nullable = false)
     private String productImagesUrl;
-
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 

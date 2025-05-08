@@ -55,11 +55,12 @@ public class CartServiceimpl implements CartService {
         if ( addToCartRequest.getColorName() == null || addToCartRequest.getSizeName() == null){
             throw new BadRequestException("Color or size must not be null");
         }
-        ProductVariant productVariant = productVariantRepository.findByProductProductIdAndColorColorNameAndSizeSizeName(addToCartRequest.getProductId() ,addToCartRequest.getColorName(), addToCartRequest.getSizeName());
+        ProductVariant productVariant = productVariantRepository.findByProductProductIdAndColorNameAndSizeName(addToCartRequest.getProductId() ,addToCartRequest.getColorName(), addToCartRequest.getSizeName());
         Cart cart = new Cart();
         cart.setProduct(product);
         cart.setUser(user);
         cart.setQuantity(addToCartRequest.getQuantity());
+        cart.setCurrentPrice(addToCartRequest.getCurrentPrice());
         if(productVariant.getStockQuantity() > addToCartRequest.getQuantity()){
             cart.setProductVariant(productVariant);
         }else {
@@ -84,8 +85,9 @@ public class CartServiceimpl implements CartService {
                     .cartId(cart.getCartId())
                     .product(productMapper.toDto(product))
                     .quantity(quantity)
-                    .colorName(cart.getProductVariant().getColor().getColorName())
-                    .sizeName(cart.getProductVariant().getSize().getSizeName())
+                    .currentPrice(cart.getCurrentPrice())
+                    .colorName(cart.getProductVariant().getColorName())
+                    .sizeName(cart.getProductVariant().getSizeName())
                     .build();
             cartDetailResponses.add(cartDetailResponse);
         });

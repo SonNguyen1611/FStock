@@ -41,10 +41,9 @@ const Header = () => {
   };
   const handleLogout = () => {  
     if (user) {
-      window.location.reload();
       logoutApi(localStorage.getItem("authToken"));
       logout();
-
+      navigator("/");
     }
   }
 
@@ -224,7 +223,7 @@ const Header = () => {
                                           <div className="cart-img f-left">
                                             <a href="product-details.html">
                                               <img
-                                                src={`${item.product.productImages[0].productImagesUrl}/${item.product.productImages[0].productImagesName}`}
+                                                src={item.product.imageUrlDisplay}
                                                 alt="Product Image"
                                               />
                                             </a>

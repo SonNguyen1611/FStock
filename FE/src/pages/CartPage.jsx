@@ -5,11 +5,13 @@ import AuthContext from "../contexts/AuthContext";
 import Loading from "../components/user/Loading";
 import { ToastContext } from "../contexts/ToastContext";
 import { CartContext } from "../contexts/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
     const {user} = useContext(AuthContext);
     const { toast } = useContext(ToastContext);
     const {cartData , setCartData} = useContext(CartContext);
+    const navigator = useNavigate();
     const [updatedCart, setUpdatedCart] = useState(false);
     const [total, setTotal] = useState();
 
@@ -18,10 +20,10 @@ const CartPage = () => {
             let totalPriceAll = 0;
             for (let i = 0; i < cartData.length; i++) {
                 const item = cartData[i];
-                const totalPrice = item.product.priceDefault * item.quantity;
-                totalPriceAll += totalPrice ;
-                setTotal(totalPriceAll);            
+                const totalPrice = item.currentPrice * item.quantity;
+                totalPriceAll += totalPrice;
             }
+            setTotal(totalPriceAll.toFixed(2));  
         }
     }, [cartData])
 
@@ -98,13 +100,13 @@ const CartPage = () => {
                                     {cartData && cartData.map((item, index) => (
                                         <tr key={index}>
                                             <td className="product-thumbnail"><a href="product-details.html"><img
-                                            src={`${item.product.productImages[0].productImagesUrl}/${item.product.productImages[0].productImagesName}`}
+                                            src={item.product.imageUrlDisplay}
                                             alt="Product Image">                                        
                                             </img>
                                           </a></td>
                                             <td className="product-name"><a href="product-details.html">{item.product.productName}</a></td>
                                             
-                                            <td className="product-price"><span className="amount">$ {item.product.priceDefault}</span></td>
+                                            <td className="product-price"><span className="amount">$ {item.currentPrice}</span></td>
                                             <td className="product-price"><span className="amount"> {item.colorName}</span></td>
                                             <td className="product-price"><span className="amount"> {item.sizeName}</span></td>
 
@@ -115,7 +117,7 @@ const CartPage = () => {
                                                     <button className="inc qtybutton " onClick={(e) => handleIncQuantity(e, index)}>+</button>
                                                 </div>
                                             </td>
-                                            <td className="product-subtotal"><span className="amount">{item.quantity * item.product.priceDefault}</span></td>
+                                            <td className="product-subtotal"><span className="amount">{total}</span></td>
                                             <td className="product-remove"><a href="#" onClick={(e)=> handleRemoveItem(e , index)}><i className="fa fa-times"></i></a></td>
                                         </tr>
                                     ))}
@@ -140,7 +142,10 @@ const CartPage = () => {
                                         <ul className="mb-20">
                                             <li>Total <span>{total}</span></li>
                                         </ul>
-                                        <a className="os-btn" href="checkout.html">Pay</a>
+                                        <a className="os-btn" href="checkout.html" onClick={(e) => {
+                                            e.preventDefault();
+                                            navigator("/checkout")
+                                        }}>Pay</a>
                                     </div>
                                 </div>
                             </div>

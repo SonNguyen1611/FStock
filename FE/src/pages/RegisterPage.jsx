@@ -29,9 +29,7 @@ const RegisterPage = () => {
         message: "Invalid phone number format",
       },
     },
-    address: {
-      required: "Address must not be blank",
-    },
+    
     userName: {
       required: "User Name must not be blank",
       minLength: {
@@ -135,20 +133,6 @@ const RegisterPage = () => {
                   {errors.phone && (
                     <div style={{ color: "red" }}>{errors.phone.message}</div>
                   )}
-
-                  <label>
-                    Address <span>**</span>
-                  </label>
-                  <input
-                    id="address"
-                    type="text"
-                    placeholder="Enter Address"
-                    {...register("address", registerOptions.address)}
-                  />
-                  {errors.address && (
-                    <div style={{ color: "red" }}>{errors.address.message}</div>
-                  )}
-
                   <label>
                     Username <span>**</span>
                   </label>

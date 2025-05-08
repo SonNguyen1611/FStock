@@ -1,5 +1,7 @@
 package com.example.Fstock.controller;
 
+import com.example.Fstock.dto.request.ChangeInfoRequest;
+import com.example.Fstock.dto.request.ChangePasswordRequest;
 import com.example.Fstock.dto.request.CreationUser;
 import com.example.Fstock.dto.response.ApiResponse;
 import com.example.Fstock.dto.response.UserResponse;
@@ -8,7 +10,9 @@ import com.example.Fstock.service.Service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -52,11 +56,29 @@ public class UserController {
                 .build());
     }
     @GetMapping()
-    public ResponseEntity<ApiResponse> getAllUsers() {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse> getAllUsers(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return  ResponseEntity.ok(ApiResponse.<Page<UserResponse>>builder()
+                .message("All users")
+                .data(userService.getAllUser(pageNumber, pageSize))
+                .build());
+    }
 
-        return  ResponseEntity.ok(ApiResponse.<List<UserResponse>>builder()
-                .message("User by id")
-                .data(userService.getAllUser())
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(changePasswordRequest);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change password success")
+                .build());
+    }
+    @PostMapping("/change-info")
+    public ResponseEntity<ApiResponse> changeInfo(@RequestBody @Valid ChangeInfoRequest changeInfoRequest) {
+        userService.changeInfo(changeInfoRequest);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change info success")
                 .build());
     }
 

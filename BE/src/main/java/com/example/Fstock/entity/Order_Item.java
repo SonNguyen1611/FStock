@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,12 +20,12 @@ public class Order_Item {
     @Column(name = "quantity", nullable = false)
     private int quantity;
     @Column( nullable = false)
-    private double unitPrice;
-
+    private BigDecimal priceAtOrder;
+    @Column( nullable = false)
+    private String imageUrlDisplay;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;

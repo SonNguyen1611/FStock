@@ -23,7 +23,7 @@ public class Export {
     @Column(name = "import_price", nullable = false)
     private float exportPrice;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "export")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "export")
     private List<Export_Detail> exportDetails;
 
     @ManyToOne(cascade = CascadeType.MERGE)

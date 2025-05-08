@@ -22,6 +22,7 @@ const Pagination = ({totalPage, handlePageNumber}) => {
         return pages
     }
     const pages = listNumberPage();
+    
     const handleChangePageNumber = (num) => {
         handlePageNumber ('pageNumber', num )
         setCurrentPage(num)

@@ -23,21 +23,30 @@ public class Product {
     @Column( nullable = false)
     private String productName;
 
+    @Column( nullable = false)
+    private String productSKU;
+
     @Column(name = "price_default",precision = 15, scale = 2)
     private BigDecimal priceDefault;
+
+    @Column(name = "discount",precision = 15, scale = 2)
+    private BigDecimal discount;
 
     @Column(name = "description")
     private String description;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @Column(nullable = false)
+    private String imageUrlDisplay;
+
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product", orphanRemoval = true)
     private List<Order_Item> orderItems;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product", orphanRemoval = true)
     private List<Cart> carts;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")
@@ -49,13 +58,13 @@ public class Product {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")
     private List<Warehouse_Product> warehouseProducts;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "product")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product", orphanRemoval = true)
     private List<ProductVariant> productVariants;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "product")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "product", orphanRemoval = true)
     private List<ProductImages> productImages;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "product")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "product", orphanRemoval = true)
     private List<Review> reviews;
 
 

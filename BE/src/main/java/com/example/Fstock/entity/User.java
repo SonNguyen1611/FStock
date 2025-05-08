@@ -1,5 +1,6 @@
 package com.example.Fstock.entity;
 
+import com.example.Fstock.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,8 +28,13 @@ public class User {
     private String password;
     @Column( nullable = false)
     private String phone;
+
+    @Column( nullable = true)
+    private String imgUrlDisplay;
+
     @Column( nullable = false)
-    private String address;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "user")
     private List<Order> orders;

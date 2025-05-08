@@ -73,8 +73,6 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public List<ErrorResponse> handleValidationgException(MethodArgumentNotValidException e, WebRequest request) {
         List<ErrorResponse> errorResponses = new ArrayList<>();
-
-
         e.getBindingResult().getFieldErrors().forEach(fieldError -> {
            errorResponses.add(ErrorResponse.builder().status(HttpStatus.BAD_REQUEST).
                    message( fieldError.getDefaultMessage())

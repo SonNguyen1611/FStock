@@ -20,24 +20,34 @@ public class ProductVariant {
     private Integer productVariantId;
 
     @Column( nullable = false)
-    private Long price;
-
-    @Column( nullable = false)
     private Integer stockQuantity;
+
+    @Column(nullable = false)
+    private String sizeName;
+
+    @Column(nullable = false)
+    private float length;
+
+    @Column(nullable = false)
+    private float width;
+
+    @Column(nullable = false)
+    private float height;
+
+    @Column(nullable = false)
+    private double weight;
+
+    @Column(nullable = false)
+    private String colorName;
+
+    @Column(nullable = false)
+    private String colorCode;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @ManyToOne
-    @JoinColumn(name = "size_id")
-    private Size size;
-
-    @ManyToOne
-    @JoinColumn(name = "color_id")
-    private Color color;
-
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "productVariant")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "productVariant")
     private List<Cart> carts;
 
 }

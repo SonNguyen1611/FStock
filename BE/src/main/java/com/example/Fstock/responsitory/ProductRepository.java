@@ -15,20 +15,19 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findProductsByPriceRange (@Param("price1")int price1,
                                             @Param("price2")int price2
                                            );
+    @Query("select p from Product p join p.productVariants pv where pv.colorName = :colorName")
+    List<Product> findByProductVariantsColorName(@Param(("colorName")) String colorName);
 
-    @Query("select p from Product p " +
-            "JOIN  p.productVariants pv " +
-            "JOIN pv.color c  where c.id = :colorId ")
-    List<Product> findProductsByColor( @Param("colorId") Integer colorId);
+    @Query("select p from Product p join p.productVariants pv where pv.sizeName = :sizeName")
+    List<Product> findByProductVariantsSizeName(@Param("sizeName") String sizeName);
 
-    @Query("select p from Product p " +
-            "JOIN  p.productVariants pv " +
-            "JOIN pv.size s  where s.sizeId = :sizeId")
-    List<Product> findProductsBySize(@Param("sizeId") Integer sizeId);
+    @Query("select p from Product p where p.productSKU like %:keyword% or p.productName like %:keyword%")
+    List <Product> findBySearchKeyword (@Param("keyword") String searchKeyword);
 
     List<Product> findByCategoryCategoryId (Integer categoryId);
 
     Product findByProductId  (Integer id);
 
+    Product findByProductSKU (String productSKU);
 
 }

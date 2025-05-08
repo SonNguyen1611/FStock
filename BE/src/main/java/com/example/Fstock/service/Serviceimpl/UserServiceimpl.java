@@ -1,10 +1,15 @@
 package com.example.Fstock.service.Serviceimpl;
 
+import com.example.Fstock.dto.request.ChangeInfoRequest;
+import com.example.Fstock.dto.request.ChangePasswordRequest;
 import com.example.Fstock.dto.request.CreationUser;
+import com.example.Fstock.dto.response.OrderDto;
 import com.example.Fstock.dto.response.UserResponse;
+import com.example.Fstock.entity.Order;
 import com.example.Fstock.entity.Roles;
 import com.example.Fstock.entity.User;
 import com.example.Fstock.entity.User_Roles;
+import com.example.Fstock.exception.BadRequestException;
 import com.example.Fstock.exception.ConflictException;
 import com.example.Fstock.exception.InternalServerErrorException;
 import com.example.Fstock.exception.NotFoundException;
@@ -14,6 +19,9 @@ import com.example.Fstock.responsitory.UserRepository;
 import com.example.Fstock.responsitory.User_RoleRepository;
 import com.example.Fstock.service.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -50,7 +58,6 @@ public class UserServiceimpl implements UserService {
         newUser.setEmail(creationUser.getEmail());
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         newUser.setPassword(passwordEncoder.encode(creationUser.getPassword()));
-        newUser.setAddress(creationUser.getAddress());
         newUser.setPhone(creationUser.getPhone());
         newUser.setUserName(creationUser.getUserName());
         User savedUser = userRepository.save(newUser);
@@ -94,11 +101,41 @@ public class UserServiceimpl implements UserService {
        return userMapper.toUserResponse(user);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+
     @Override
-    public List<UserResponse> getAllUser() {
-        List<User> users = userRepository.findAll();
-        return users.stream().map(user -> userMapper.toUserResponse(user)).toList();
+    public Page<UserResponse> getAllUser(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+        Page<User> users = userRepository.findAll(pageable);
+        Page<UserResponse> orderDtos = users.map(user -> userMapper.toUserResponse(user));
+        return orderDtos;
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        User user = userRepository.findByEmail(changePasswordRequest.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())){
+            throw new BadRequestException("Old password is incorrect");
+        }
+        if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+            throw new BadRequestException("New password and confirm password do not match");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public void changeInfo(ChangeInfoRequest changeInfoRequest) {
+        User user = userRepository.findByEmail(changeInfoRequest.getEmail())
+                .orElseThrow(() ->  new NotFoundException("User not found"));
+
+        user.setUserName(changeInfoRequest.getUserName());
+        user.setPhone(changeInfoRequest.getPhone());
+
+        userRepository.save(user);
     }
 
 

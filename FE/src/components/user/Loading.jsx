@@ -1,6 +1,5 @@
 
 const Loading = () => {
-    console.log("Loading component rendered");
 
     return (
         <div id="loading">

@@ -2,6 +2,8 @@ package com.example.Fstock.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,6 +15,10 @@ public class Cart {
     private int cartId;
     @Column(name = "quantity", nullable = false)
     private int quantity;
+
+    @Column
+    private BigDecimal currentPrice;
+
     @ManyToOne
     @JoinColumn(name="customer_id")
     private User user;

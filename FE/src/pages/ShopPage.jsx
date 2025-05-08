@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { useSearchParams } from "react-router-dom";
-import { listCategories } from "../service/CateoryService";
-import { getAllColors } from "../service/ColorService";
-import { getAllSizes } from "../service/SizeService";
-import { getProductByFilter } from "../service/ProductService";
+import { listCategories } from "../service/CategoryService";
+import {
+  getColorNames,
+  getProductByFilter,
+  getSizeNames,
+} from "../service/ProductService";
 import ErrorCom from "../components/user/Error";
 import ProductCard from "../components/user/ProductCard";
 import Pagination from "../components/user/Pagination";
@@ -18,11 +20,11 @@ const ShopPage = () => {
   const [colors, setColors] = useState([]);
   const [sizes, setSizes] = useState([]);
 
-
   const [error, setError] = useState({
     statusCode: null,
     message: null,
   });
+  console.log(colors);
 
   const [filter, setFilter] = useState({
     category: null,
@@ -32,6 +34,7 @@ const ShopPage = () => {
     size: null,
     pageNumber: 1,
   });
+  console.log(filter);
   const [appliedFilter, setAppliedFilter] = useState({
     category: null,
     priceMin: null,
@@ -39,26 +42,31 @@ const ShopPage = () => {
     color: null,
     size: null,
   });
-  
-  
+
   // lấy ra các cặp key value và biến nó thành 1 object mới chỉ chứa các cặp key value này
   const filtered = Object.entries(appliedFilter)
-  .filter(([ key , value]) => value !== null)
-  .reduce((acc, [key, value]) => {
-    if (key === "priceMin" || key === "priceMax") {
-        acc["priceRange"] = "$" + (appliedFilter.priceMin || 0) + " - " + "$" + (appliedFilter.priceMax || ">"); 
-    } else{
-      acc[key] = value;
-    }
-    return acc; 
-  }, {});
+    .filter(([key, value]) => value !== null)
+    .reduce((acc, [key, value]) => {
+      if (key === "priceMin" || key === "priceMax") {
+        acc["priceRange"] =
+          "$" +
+          (appliedFilter.priceMin || 0) +
+          " - " +
+          "$" +
+          (appliedFilter.priceMax || ">");
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
 
   // kiểm tra có giá trị nào khác null không
-  const hasNonNullValue = Object.values(appliedFilter).some(value => value !== null);
+  const hasNonNullValue = Object.values(appliedFilter).some(
+    (value) => value !== null
+  );
   // biến các giá trị của các trường trong filtered thành mảng
   const values = Object.values(filtered);
 
- 
   const priceRanges = [
     { label: "Under $25", value: { min: 0, max: 25 } },
     { label: "$26 to $50", value: { min: 26, max: 50 } },
@@ -81,23 +89,22 @@ const ShopPage = () => {
   }, []);
 
   useEffect(() => {
-    getAllColors()
-      .then((result) => {
-        setColors(result.data.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    const fetchColors = async () => {
+      const result = await getColorNames();
+      setColors(result.data.data);
+    };
+    fetchColors();
   }, []);
+  console.log(colors);
 
   useEffect(() => {
     const fetchSizes = async () => {
-      const result = await getAllSizes();
+      const result = await getSizeNames();
       setSizes(result.data.data);
-    }
+    };
     fetchSizes();
-      
   }, []);
+  console.log(products);
 
   useEffect(() => {
     getProductByFilter(filter)
@@ -126,92 +133,87 @@ const ShopPage = () => {
       });
   }, [filter]);
 
- 
-
   const handleFilterChange = (key, value1, value2) => {
     setFilter((prev) => ({
       ...prev,
       [key]: value1,
     }));
-    if (value2){
+    if (value2) {
       setAppliedFilter((prev) => ({
         ...prev,
         [key]: value2,
       }));
     }
-   
   };
   const handleChangePriceRange = (price) => {
     setSelectedPrice(price);
-    handleFilterChange("priceMin", price.min , price.min);
+    handleFilterChange("priceMin", price.min, price.min);
     handleFilterChange("priceMax", price.max, price.max);
-
   };
-  
+
   const handleRemoveFilterTag = (value) => {
-    const colorToRemove = colors.find(color => color.colorName === value);
-    const categoryToRemove = categories.find( category => category.categoryName === value);
-    const sizeToRemove = sizes.find(size => size.sizeName === value);
+    const colorToRemove = colors.find((color) => color.colorName === value);
+    const categoryToRemove = categories.find(
+      (category) => category.categoryName === value
+    );
+    const sizeToRemove = sizes.find((size) => size === value);
     const priceToRemove = value.match(/\d+/g);
-  
+
     if (colorToRemove) {
-      setFilter(prev => ({
+      setFilter((prev) => ({
         ...prev,
-        color: null
-      }))
-      setAppliedFilter(prev => ({
+        color: null,
+      }));
+      setAppliedFilter((prev) => ({
         ...prev,
-        color: null
-      }))
+        color: null,
+      }));
     }
     if (categoryToRemove) {
-      setFilter(prev => ({
+      setFilter((prev) => ({
         ...prev,
-        category: null
-      }))
-      setAppliedFilter(prev => ({
+        category: null,
+      }));
+      setAppliedFilter((prev) => ({
         ...prev,
-        category: null
-      }))
-     
+        category: null,
+      }));
     }
     if (sizeToRemove) {
-      setFilter(prev => ({
+      setFilter((prev) => ({
         ...prev,
-        size: null
-      }))
-      setAppliedFilter(prev => ({
+        size: null,
+      }));
+      setAppliedFilter((prev) => ({
         ...prev,
-        size: null
-      }))
+        size: null,
+      }));
     }
-    if( priceToRemove !== null ){
-      if(priceToRemove.length > 1){
-      setFilter(prev => ({
-        ...prev,
-        priceMin: null,
-        priceMax: null
-      }))
-      setAppliedFilter(prev => ({
-        ...prev,
-        priceMin: null,
-        priceMax: null
-      }))
-    }else {
-      setFilter(prev => ({
-        ...prev,
-        priceMin: null,
-      }))
-      setAppliedFilter(prev => ({
-        ...prev,
-        priceMin: null,
-      }))
+    if (priceToRemove !== null) {
+      if (priceToRemove.length > 1) {
+        setFilter((prev) => ({
+          ...prev,
+          priceMin: null,
+          priceMax: null,
+        }));
+        setAppliedFilter((prev) => ({
+          ...prev,
+          priceMin: null,
+          priceMax: null,
+        }));
+      } else {
+        setFilter((prev) => ({
+          ...prev,
+          priceMin: null,
+        }));
+        setAppliedFilter((prev) => ({
+          ...prev,
+          priceMin: null,
+        }));
+      }
     }
-  }
-}
+  };
 
-  
-  
   return (
     <section className="shop__area pt-100 pb-100">
       <div className="container">
@@ -223,22 +225,26 @@ const ShopPage = () => {
                   <h3>Applied Filter</h3>
                 </div>
 
-
                 <div className="sidebar__widget-content">
                   <div className="filter d-flex flex-column">
-                 {hasNonNullValue ?  (
-                  values.map((value) => { return (
-                    
-                    <div className="filter-tag d-flex" key={value}>
-                      <span>{value}</span>
-                      <button className="remove-filter text-center" onClick = {() => handleRemoveFilterTag(value) }>x</button>
-                    </div> )
-                  })
-                 ) : (  
-                  <div> </div>
-                 )}
-                 </div>
-    
+                    {hasNonNullValue ? (
+                      values.map((value) => {
+                        return (
+                          <div className="filter-tag d-flex" key={value}>
+                            <span>{value}</span>
+                            <button
+                              className="remove-filter text-center"
+                              onClick={() => handleRemoveFilterTag(value)}
+                            >
+                              x
+                            </button>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div> </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="sidebar__widget mb-55">
@@ -335,18 +341,16 @@ const ShopPage = () => {
                 <div className="sidebar__widget-content">
                   <div className="size">
                     <ul>
-                      {sizes.map((item) => (
-                        <li key={item.sizeId}>
+                      {sizes.map((item, index) => (
+                        <li key={index}>
                           <a
                             href="#"
                             onClick={(event) => {
                               event.preventDefault();
-                              handleFilterChange("size", 
-                                item.sizeId, 
-                                item.sizeName);
+                              handleFilterChange("size", item, item);
                             }}
                           >
-                            {item.sizeName}
+                            {item}
                           </a>
                         </li>
                       ))}
@@ -361,15 +365,21 @@ const ShopPage = () => {
                 <div className="sidebar__widget-content">
                   <div className="color__pick">
                     <ul>
-                      {colors.map((item) => (
-                        <li key={item.id}>
+                      {colors.map((item, index) => (
+                        <li key={index}>
                           <button
                             className="color-hover"
                             type="button"
                             style={{
                               background: item.colorCode,
                             }}
-                            onClick={() => handleFilterChange("color", item.id, item.colorName)}
+                            onClick={() =>
+                              handleFilterChange(
+                                "color",
+                                item.colorName,
+                                item.colorName
+                              )
+                            }
                           ></button>
                         </li>
                       ))}
@@ -525,7 +535,7 @@ const ShopPage = () => {
                           className="col-xl-4 col-lg-4 col-md-6 col-sm-6 custom-col-10"
                           key={item.productId}
                         >
-                          <ProductCard product = {item}></ProductCard>
+                          <ProductCard product={item}></ProductCard>
                         </div>
                       ))
                     )}
@@ -630,7 +640,10 @@ const ShopPage = () => {
               </div>
               <div className="row mt-40">
                 <div className="col-xl-12">
-                    <Pagination totalPage = {totalPage} handlePageNumber = {handleFilterChange}></Pagination>
+                  <Pagination
+                    totalPage={totalPage}
+                    handlePageNumber={handleFilterChange}
+                  ></Pagination>
                 </div>
               </div>
             </div>

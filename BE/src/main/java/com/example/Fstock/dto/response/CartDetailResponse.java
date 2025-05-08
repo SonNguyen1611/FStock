@@ -2,6 +2,7 @@ package com.example.Fstock.dto.response;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -14,6 +15,7 @@ public class CartDetailResponse {
     private String email;
     private ProductDto product;
     private int quantity;
+    private BigDecimal currentPrice;
     private String colorName;
     private String sizeName;
 

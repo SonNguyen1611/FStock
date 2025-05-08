@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
 import { getProductById, getStockQuantity } from "../service/ProductService";
-import { formatDistanceToNow, } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import Loading from "../components/user/Loading";
 import AuthContext from "../contexts/AuthContext";
@@ -12,7 +12,7 @@ import { ToastContext } from "../contexts/ToastContext";
 const ProductDetailPage = () => {
   const [product, setProduct] = useState();
   const [starSelect, setStarSelect] = useState();
-  const [activeTab , setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("add");
   const [content, setContent] = useState();
   const [review, setReview] = useState();
   const [quantity, setQuantity] = useState(0);
@@ -22,15 +22,15 @@ const ProductDetailPage = () => {
   const navigator = useNavigate();
   const { id } = useParams();
   const ref = useRef(null);
-  const {user} = useContext(AuthContext);
-  const {toast} = useContext(ToastContext);
-  
+  const { user } = useContext(AuthContext);
+  const { toast } = useContext(ToastContext);
+  console.log(product)
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const result =  await getProductById(id);
-        setProduct(result.data.data)
+        const result = await getProductById(id);
+        setProduct(result.data.data);
       } catch (err) {
         console.error("Error fetching product:", err);
       }
@@ -38,139 +38,136 @@ const ProductDetailPage = () => {
     fetchProduct();
   }, [review]);
 
-  useEffect (()=> {
+  useEffect(() => {
     const data = {
-      productId : id, 
-      colorName : colorName,
-      sizeName : sizeName
-    }
+      productId: id,
+      colorName: colorName,
+      sizeName: sizeName,
+    };
+
     async function fetchData() {
-      try{
+      try {
         const res = await getStockQuantity(data);
         setQuantityAvailable(res.data.data);
-      }catch (error) {
+      } catch (error) {
         console.error("Error fetching stock quantity:", error);
       }
     }
     fetchData();
-    if (quantity > quantityAvailable){
+    if (quantity > quantityAvailable) {
       toast.error("Quantity is not available");
     }
-  }, [colorName, sizeName, quantity])
+  }, [colorName, sizeName, quantity]);
 
-  
+
   const handleDecQuantity = (e) => {
-        e.preventDefault();
-        setQuantity(quantity - 1);
-       
-    }
-    const handleIncQuantity = (e) => {
-        e.preventDefault();
-        setQuantity(quantity + 1);
-    }
+    e.preventDefault();
+    setQuantity(quantity - 1);
+  };
+  const handleIncQuantity = (e) => {
+    e.preventDefault();
+    setQuantity(quantity + 1);
+  };
 
   const handleComeBackHome = (event) => {
-    event.preventDefault(); 
-    navigator("/"); 
+    event.preventDefault();
+    navigator("/");
   };
 
   const handleAddReview = async (event) => {
     event.preventDefault();
     await setActiveTab("add");
     setActiveTab("review");
-  }
+  };
   const handleChangeTab = (event, tabName) => {
     event.preventDefault();
     setActiveTab(tabName);
-    
   };
   const handleSelectStar = (e, index) => {
     e.preventDefault();
-    if(starSelect !== null && starSelect !== undefined){
-      setStarSelect(starSelect + (index +  1))
-
-    }else {
-
-      setStarSelect(index)
+    if (starSelect !== null && starSelect !== undefined) {
+      setStarSelect(starSelect + (index + 1));
+    } else {
+      setStarSelect(index);
     }
-  }
+  };
 
-    const handleAddToCart = async (e) => {
-      e.preventDefault();
-      if(!user) {
-        navigator("/login");
-      }else {
-        try {
-          const data = {
-            productId : id, 
-            email : user.sub,
-            quantity : quantity, 
-            colorName : colorName,
-            sizeName : sizeName
-          };
-          await addToCart(data);
-          toast.success("Add to cart successfully");        
-        }catch (error) {
-          toast.error(error.response.data.message);
-        }
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      navigator("/login");
+    } else {
+      try {
+        const data = {
+          productId: id,
+          email: user.sub,
+          quantity: quantity,
+          colorName: colorName,
+          sizeName: sizeName,
+          currentPrice :(product.priceDefault - (product.priceDefault * product.discount) / 100).toFixed(2)
+        };
+        await addToCart(data);
+        toast.success("Add to cart successfully");
+      } catch (error) {
+        toast.error(error.response.data.message);
       }
     }
+  };
 
   const handleSetColorName = (e) => {
     e.preventDefault();
     if (e.target.value === "- Please select -") {
       setColorName(null);
-    }else{
+    } else {
       setColorName(e.target.value);
     }
-  }
+  };
   const handleSetSizeName = (e) => {
     e.preventDefault();
     if (e.target.value === "- Please select -") {
       setSizeName(null);
-    }else{
+    } else {
       setSizeName(e.target.value);
     }
-  }
+  };
 
   const handleRemoveStar = (e, index) => {
     e.preventDefault();
     setStarSelect(index);
-  }
+  };
   const handleSubmitReview = (e) => {
     e.preventDefault();
     const newData = {
-      productId : id, 
-      email : user.sub,
-      rating : starSelect,
-      content : content
+      productId: id,
+      email: user.sub,
+      rating: starSelect,
+      content: content,
     };
     createReview(newData);
-  }
+  };
   const createReview = async (newData) => {
-   const response = await createReviewApi(newData)
-   setReview(response.data.data);
-  }
+    const response = await createReviewApi(newData);
+    setReview(response.data.data);
+  };
 
   const handleSetContent = (e) => {
     setContent(e.target.value);
-  }
+  };
 
   useEffect(() => {
-    if(activeTab === "review") {
-      if(user){
+    if (activeTab === "review") {
+      if (user) {
         ref.current.focus({ behavior: "smooth" });
-      }else {
+      } else {
         navigator("/login", { state: { from: window.location.pathname } });
       }
     }
-  }, [activeTab])
-  
+  }, [activeTab]);
 
-  if(!product){
+  if (!product) {
     return <Loading></Loading>;
   }
- 
+
   return (
     <>
       <section
@@ -229,12 +226,11 @@ const ProductDetailPage = () => {
                           aria-selected="true"
                         >
                           <div className="product__nav-img w_img-details">
-                            {Array.isArray(product.productImages) && (
+                            
                               <img
-                                src={`${product.productImages[0].productImagesUrl}/${product.productImages[0].productImagesName}`}
+                                src={product.imageUrlDisplay}
                                 alt="Product Image"
                               />
-                            )}
                           </div>
                         </a>
                         {/* Tab 2 */}
@@ -250,7 +246,7 @@ const ProductDetailPage = () => {
                           <div className="product__nav-img w_img-details">
                             {Array.isArray(product.productImages) && (
                               <img
-                                src={`${product.productImages[1].productImagesUrl}/${product.productImages[1].productImagesName}`}
+                                src={product.productImages[0].productImagesUrl}
                                 alt="Product Image"
                               />
                             )}
@@ -269,8 +265,8 @@ const ProductDetailPage = () => {
                           <div className="product__nav-img w_img-details">
                             {Array.isArray(product.productImages) && (
                               <img
-                                src={`${product.productImages[2].productImagesUrl}/${product.productImages[2].productImagesName}`}
-                                alt="Product Image"
+                              src={product.productImages[1].productImagesUrl}
+                              alt="Product Image"
                               />
                             )}
                           </div>
@@ -288,8 +284,8 @@ const ProductDetailPage = () => {
                           <div className="product__nav-img w_img-details">
                             {Array.isArray(product.productImages) && (
                               <img
-                                src={`${product.productImages[3].productImagesUrl}/${product.productImages[3].productImagesName}`}
-                                alt="Product Image"
+                              src={product.productImages[2].productImagesUrl}
+                              alt="Product Image"
                               />
                             )}
                           </div>
@@ -311,15 +307,13 @@ const ProductDetailPage = () => {
                       aria-labelledby="pro-one-tab"
                     >
                       <div className="product__modal-img product__thumb w_img-main">
-                        {Array.isArray(product.productImages) && (
                           <img
-                            src={`${product.productImages[0].productImagesUrl}/${product.productImages[0].productImagesName}`}
+                            src={product.imageUrlDisplay}
                             alt="Product Image"
                           />
-                        )}
                         <div className="product__sale">
                           <span className="new">new</span>
-                          <span className="percent">-16%</span>
+                          <span className="percent">-{product.discount}%</span>
                         </div>
                       </div>
                     </div>
@@ -334,8 +328,8 @@ const ProductDetailPage = () => {
                       <div className="product__modal-img product__thumb w_img-main">
                         {Array.isArray(product.productImages) && (
                           <img
-                            src={`${product.productImages[1].productImagesUrl}/${product.productImages[1].productImagesName}`}
-                            alt="Product Image"
+                          src={product.productImages[0].productImagesUrl}
+                          alt="Product Image"
                           />
                         )}
                         <div className="product__sale">
@@ -355,8 +349,8 @@ const ProductDetailPage = () => {
                       <div className="product__modal-img product__thumb w_img-main">
                         {Array.isArray(product.productImages) && (
                           <img
-                            src={`${product.productImages[2].productImagesUrl}/${product.productImages[2].productImagesName}`}
-                            alt="Product Image"
+                          src={product.productImages[1].productImagesUrl}
+                          alt="Product Image"
                           />
                         )}
                         <div className="product__sale">
@@ -376,8 +370,8 @@ const ProductDetailPage = () => {
                       <div className="product__modal-img product__thumb w_img-main">
                         {Array.isArray(product.productImages) && (
                           <img
-                            src={`${product.productImages[3].productImagesUrl}/${product.productImages[3].productImagesName}`}
-                            alt="Product Image"
+                          src={product.productImages[2].productImagesUrl}
+                          alt="Product Image"
                           />
                         )}
                         <div className="product__sale">
@@ -395,125 +389,139 @@ const ProductDetailPage = () => {
                     <a href="product-details.html">{product.productName}</a>
                   </h4>
                   <div className="rating rating-shop mb-15">
-                  <ul>
-                  {Number.isInteger(product.averageRatings) ? (
-                    <>
-                    {
-                    (product.averageRatings >= 1 ) ?  (
-                      <>
-                      {[...Array(product.averageRatings)].map((_, index) => (
-                        <li key={index}> 
-                          <span>
-                            <i className="fas fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
+                    <ul>
+                      {Number.isInteger(product.averageRatings) ? (
+                        <>
+                          {product.averageRatings >= 1 ? (
+                            <>
+                              {[...Array(product.averageRatings)].map(
+                                (_, index) => (
+                                  <li key={index}>
+                                    <span>
+                                      <i className="fas fa-star"></i>
+                                    </span>
+                                  </li>
+                                )
+                              )}
 
-                      {[...Array( 5 - product.averageRatings)].map((_, index) => (
-                        <li key={index}> 
-                          <span>
-                            <i className="fal fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
-                      </>
-                    ) : (
-                      <>
-                      {[...Array(5)].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                            <i className="fal fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
-                      </>
-                    ) 
-                  } 
-                    </>
+                              {[...Array(5 - product.averageRatings)].map(
+                                (_, index) => (
+                                  <li key={index}>
+                                    <span>
+                                      <i className="fal fa-star"></i>
+                                    </span>
+                                  </li>
+                                )
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {[...Array(5)].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fal fa-star"></i>
+                                  </span>
+                                </li>
+                              ))}
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {product.averageRatings > 0 &&
+                          product.averageRatings < 1 ? (
+                            <>
+                              {[...Array(1)].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fa-regular fa-star-half-stroke"></i>
+                                  </span>
+                                </li>
+                              ))}
+                            </>
+                          ) : product.averageRatings === 0 ? (
+                            <>
+                              {[...Array(5)].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fal fa-star"></i>
+                                  </span>
+                                </li>
+                              ))}
+                            </>
+                          ) : (
+                            <>
+                              {[
+                                ...Array(Math.floor(product.averageRatings)),
+                              ].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fas fa-star"></i>
+                                  </span>
+                                </li>
+                              ))}
 
-                  ) : ( 
-                    <>
-                    {product.averageRatings > 0 && product.averageRatings < 1 ? (
-                      <>
-                      {[...Array(1)].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                          <i className="fa-regular fa-star-half-stroke"></i>
-                          </span>
-                        </li>
-                      ))}
-                      </>
-                    ) : product.averageRatings === 0 ? (
-                      <>
-                      {[...Array(5)].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                            <i className="fal fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
-                      </>
-
-                    ) : (
-                      <>
-                      {[...Array(Math.floor(product.averageRatings))].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                            <i className="fas fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
-                      
-                      {[...Array(1)].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                          <i className="fa-regular fa-star-half-stroke"></i>
-                          </span>
-                        </li>
-                      ))}
-                      {[...Array((5 - (Math.floor(product.averageRatings) + 1)))].map((_,index)=> (
-                        <li key={index}> 
-                          <span>
-                            <i className="fal fa-star"></i>
-                          </span>
-                        </li>
-                      ))}
-                      </>
-                    )}
-                    </>
-                  )}
-                  <span className="rating-no ml-10">
-                      {product.averageRatings} 
-                  </span>
-
-                  </ul>
+                              {[...Array(1)].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fa-regular fa-star-half-stroke"></i>
+                                  </span>
+                                </li>
+                              ))}
+                              {[
+                                ...Array(
+                                  5 - (Math.floor(product.averageRatings) + 1)
+                                ),
+                              ].map((_, index) => (
+                                <li key={index}>
+                                  <span>
+                                    <i className="fal fa-star"></i>
+                                  </span>
+                                </li>
+                              ))}
+                            </>
+                          )}
+                        </>
+                      )}
+                      <span className="rating-no ml-10">
+                        {product.averageRatings}
+                      </span>
+                    </ul>
                     <span className="rating-no ml-10 rating-left">
                       {product.reviewResponses.length} rating(s)
                     </span>
                     <span className="review rating-left">
-                      <a href="#" onClick={handleAddReview}>Add your Review</a>
+                      <a href="#" onClick={handleAddReview}>
+                        Add your Review
+                      </a>
                     </span>
                   </div>
                   <div className="product__price-2 mb-25">
-                    <span>$96.00</span>
-                    <span className="old-price">$96.00</span>
+                    <span>${(product.priceDefault - (product.priceDefault * product.discount) / 100).toFixed(2)}</span>
+                    <span className="old-price">${product.priceDefault}.00</span>
                   </div>
                   <div className="product__modal-des mb-30">
                     <p>{product.description}</p>
                   </div>
                   <div className="product__modal-form mb-30">
                     <form action="#">
-                      
                       <div className="product__modal-input color mb-20">
                         <label>
                           Color <i className="fas fa-star-of-life"></i>
                         </label>
-                        <select value={colorName} onChange={(e) => handleSetColorName(e)}>
+                        <select
+                          value={colorName}
+                          onChange={(e) => handleSetColorName(e)}
+                        >
                           <option>- Please select -</option>
-                          {[... new Set (product.productVariants?.map( item => item.color.colorName))].map((colorName , index) => (
-                            <option key={index}>
-                               {colorName} 
-                            </option> 
+                          {[
+                            ...new Set(
+                              product.productVariants?.map(
+                                (item) => item.colorName
+                              )
+                            ),
+                          ].map((colorName, index) => (
+                            <option key={index}>{colorName}</option>
                           ))}
                         </select>
                       </div>
@@ -521,18 +529,25 @@ const ProductDetailPage = () => {
                         <label>
                           Size <i className="fas fa-star-of-life"></i>
                         </label>
-                        <select value={sizeName} onChange={(e) => handleSetSizeName(e)}>
+                        <select
+                          value={sizeName}
+                          onChange={(e) => handleSetSizeName(e)}
+                        >
                           <option>- Please select -</option>
-                          {[... new Set (product.productVariants?.map( item => item.size.sizeName))].map((sizeName , index) => (
-                            <option key={index}>
-                              {sizeName} 
-                            </option> 
+                          {[
+                            ...new Set(
+                              product.productVariants?.map(
+                                (item) => item.sizeName
+                              )
+                            ),
+                          ].map((sizeName, index) => (
+                            <option key={index}>{sizeName}</option>
                           ))}
                         </select>
                       </div>
 
                       <div className="mb-5">
-                        <span>Quantity Available: {quantityAvailable}  </span>
+                        <span>Quantity Available: {quantityAvailable} </span>
                       </div>
                       <div className="pro-quan-area d-sm-flex align-items-center">
                         <div className="product-quantity-title">
@@ -540,13 +555,25 @@ const ProductDetailPage = () => {
                         </div>
                         <div className="product-quantity mr-20 mb-20">
                           <div className="cart-plus-minus">
-                          <button className="dec qtybutton" onClick={(e) => handleDecQuantity(e)} >-</button>
-                              <input type="text" value= {quantity} />
-                           <button className="inc qtybutton " onClick={(e) => handleIncQuantity(e)}>+</button>
+                            <button
+                              className="dec qtybutton"
+                              onClick={(e) => handleDecQuantity(e)}
+                            >
+                              -
+                            </button>
+                            <input type="text" value={quantity} />
+                            <button
+                              className="inc qtybutton "
+                              onClick={(e) => handleIncQuantity(e)}
+                            >
+                              +
+                            </button>
                           </div>
                         </div>
                         <div className="pro-cart-btn">
-                          <BtnAddToCart handleAddToCart={handleAddToCart}></BtnAddToCart>
+                          <BtnAddToCart
+                            handleAddToCart={handleAddToCart}
+                          ></BtnAddToCart>
                         </div>
                       </div>
                     </form>
@@ -593,140 +620,278 @@ const ProductDetailPage = () => {
           </div>
         </div>
         <div className="shop__bottom">
-                    <div className="container">
-                        <div className="row">
-                            <div className="col-xl-12">
-                                <div className="product__details-tab">
-                                    <div className="product__details-tab-nav text-center mb-45">
-                                        <nav>
-                                            <div className="nav nav-tabs justify-content-start justify-content-sm-center" id="pro-details" role="tablist">
-                                                <a className={`nav-item nav-link ${activeTab === "add" ? "active" : " "} `} id="add-tab" data-bs-toggle="tab" href="#add" role="tab" aria-controls="add" aria-selected="false" onClick={(e) => handleChangeTab(e, "add") }>Additional Information</a>
-                                                <a className={`nav-item nav-link ${activeTab === "review" ? "active" : " "} `} id="review-tab" data-bs-toggle="tab" href="#review" role="tab" aria-controls="review" aria-selected="false" onClick={(e) => handleChangeTab(e, "review")}>Reviews ({product.reviewResponses.length})</a>
-                                            </div>
-                                        </nav>
-                                    </div>
-                                    <div className="tab-content" id="pro-detailsContent">
-                                        <div className={`tab-pane fade ${activeTab === "add" ? "show active" : ""}`} id="add" role="tabpanel">
-                                        <div className="product__details-add">
-                                          <ul> 
-                                            <li> 
-                                              <span>Weight</span> 
-                                            </li> 
-                                            <li> 
-                                            <span> {" "} {product.productVariants ?.map((item) => item.size.sizeName) .join(", ")}{" "} :{" "} {product.productVariants ?.map((item) => item.size.weight) .join("kg, ")} </span> </li> <li> <span>Dimention</span> </li> <li> <span> {" "} {product.productVariants ?.map((item) => item.size.sizeName) .join(", ")}{" "} :{" "} {product.productVariants ?.map((item) => item.size.dimention) .join(", ")} </span> </li> <li> <span>Size</span> </li> <li> <span> {product.productVariants ?.map((item) => item.size.sizeName) .join(", ")} </span> </li> </ul> </div>
-                                        </div>
-                                        
-                                        <div className={`tab-pane fade ${activeTab === "review" ? "show active" : ""}`} id="review" role="tabpanel">
-                                            <div className="product__details-review">
-                                                <div className="postbox__comments">
-                                                    <div className="postbox__comment-title mb-30">
-                                                        <h3>Reviews </h3>
-                                                    </div>
-                                                    <div className="latest-comments mb-30">
-                                                        <ul>
-                                                            <li>
-                                                                <div className="comments-box">
-                                                                    <div className="comments-avatar">
-                                                                        <img src="assets/img/blog/comments/avater-1.png" alt=""></img>
-                                                                    </div>
-                                                                    {product.reviewResponses?.map((item) => (
-                                                                      <div className="comments-text" key={item.id}>
-                                                                        <div className="avatar-name">
-                                                                            <h5>{item.username}</h5>
-                                                                            <span> - {formatDistanceToNow(new Date(item.createdAt), {addSuffix:true, locale:vi})}</span>
-                                                                        </div>
-                                                                        <div className="user-rating">
-                                                                          <ul>
-                                                                            {[...Array(item.rating + 1 )].map((_, index) => (
-                                                                            <li key={index}>
-                                                                              <a href="#">
-                                                                                <i className="fas fa-star"></i>
-                                                                              </a>
-                                                                            </li>
-                                                                            ))} 
-                                                                            {[...Array(4 - item.rating)].map((_, index) => (
-                                                                              <li key={index}>
-                                                                                <a href="#">
-                                                                                  <i className="fal fa-star"></i>
-                                                                                </a>
-                                                                              </li>
-                                                                              ))} 
-                                                                          </ul>
-                                                                      </div>
-                                                                      <p>{item.content}</p>
-                                                                    </div>
-                                                                    ))}
-                                                                    
-                                                                </div>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <div className="post-comments-form mb-100">
-                                                    <div className="post-comments-title mb-30">
-                                                        <h3>Your Review</h3>
-                                                        <div className="post-rating">
-                                                            <span>Your Rating :</span>
-                                                            <ul>
-                                                            {starSelect !== null && starSelect !== undefined ? (
-                                                              <>
-                                                              {[...Array(starSelect + 1)].map((_, index) => {
-                                                                return(
-                                                                <li key={index}>
-                                                                  <a  onClick={(e)=> handleRemoveStar(e, index)}>
-                                                                    <i className="fas fa-star"></i>
-                                                                  </a>
-                                                                </li>
-                                                                )
-                                                              })} 
-                                                              {[...Array(5 - (starSelect + 1) )].map((_, index) => {
-                                                                return(
-                                                                <li key={index}>
-                                                                  <a  onClick={(e) => handleSelectStar(e,index)}>
-                                                                    <i className="fal fa-star"></i>
-                                                                  </a>
-                                                                </li>
-                                                                )
-                                                              })} 
-                                                              </> 
-
-                                                            ) : (
-                                                              <>
-                                                              {[...Array(5)].map((_, index) => {
-                                                                return(
-                                                                <li key={index}>
-                                                                  <a href="#" onClick = {(e)=> handleSelectStar(e, index)}>
-                                                                    <i className="fal fa-star"></i>
-                                                                  </a>
-                                                                </li>
-                                                                )
-                                                              })} 
-                                                              </>
-                                                            )}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <form id="contacts-form" className="conatct-post-form" onSubmit={(e) => handleSubmitReview(e)}>
-                                                        <div className="row">
-                                                            <div className="col-xl-12">
-                                                                <div className="contact-icon p-relative contacts-message">
-                                                                    <textarea name="comments" id="comments" cols="30" rows="10"
-                                                                        placeholder="Comments" ref={ref} onChange={(e) => handleSetContent(e)}></textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-xl-12">
-                                                                <button className="os-btn os-btn-black" >Post comment</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+          <div className="container">
+            <div className="row">
+              <div className="col-xl-12">
+                <div className="product__details-tab">
+                  <div className="product__details-tab-nav text-center mb-45">
+                    <nav>
+                      <div
+                        className="nav nav-tabs justify-content-start justify-content-sm-center"
+                        id="pro-details"
+                        role="tablist"
+                      >
+                        <a
+                          className={`nav-item nav-link ${
+                            activeTab === "add" ? "active" : " "
+                          } `}
+                          id="add-tab"
+                          data-bs-toggle="tab"
+                          href="#add"
+                          role="tab"
+                          aria-controls="add"
+                          aria-selected="false"
+                          onClick={(e) => handleChangeTab(e, "add")}
+                        >
+                          Additional Information
+                        </a>
+                        <a
+                          className={`nav-item nav-link ${
+                            activeTab === "review" ? "active" : " "
+                          } `}
+                          id="review-tab"
+                          data-bs-toggle="tab"
+                          href="#review"
+                          role="tab"
+                          aria-controls="review"
+                          aria-selected="false"
+                          onClick={(e) => handleChangeTab(e, "review")}
+                        >
+                          Reviews ({product.reviewResponses.length})
+                        </a>
+                      </div>
+                    </nav>
+                  </div>
+                  <div className="tab-content" id="pro-detailsContent">
+                    <div
+                      className={`tab-pane fade ${
+                        activeTab === "add" ? "show active" : ""
+                      }`}
+                      id="add"
+                      role="tabpanel"
+                    >
+                      <div className="product__details-add">
+                        <ul>
+                          <li>
+                            <span>Weight</span>
+                          </li>
+                          <li>
+                            <span>
+                              {" "}
+                              {product.productVariants
+                                ?.map((item) => item.sizeName)
+                                .join(", ")}{" (kg) "}
+                              :{" "}
+                              {product.productVariants
+                                ?.map((item) => item.weight)
+                                .join(", ")}{" "}
+                            </span>{" "}
+                          </li>{" "}
+                          <li>
+                            {" "}
+                            <span>Dimention</span>{" "}
+                          </li>{" "}
+                          <li>
+                            {" "}
+                            <span>
+                              {" "}
+                              {product.productVariants
+                                ?.map((item) => item.sizeName)
+                                .join(", ")}{" (cm) "}
+                              :{" Height: "}
+                              {product.productVariants
+                                ?.map((item) => item.height)
+                                .join(", ")}{" "}
+                              :{" Length: "}
+                              {product.productVariants
+                                ?.map((item) => item.length)
+                                .join(", ")}{" "}
+                              :{"Width: "}
+                              {product.productVariants
+                                ?.map((item) => item.width)
+                                .join(", ")}{" "}
+                            </span>{" "}
+                          </li>{" "}
+                          <li>
+                            {" "}
+                            <span>Size</span>{" "}
+                          </li>{" "}
+                          <li>
+                            {" "}
+                            <span>
+                              {" "}
+                              {product.productVariants
+                                ?.map((item) => item.sizeName)
+                                .join(", ")}{" "}
+                            </span>{" "}
+                          </li>{" "}
+                        </ul>{" "}
+                      </div>
                     </div>
+
+                    <div
+                      className={`tab-pane fade ${
+                        activeTab === "review" ? "show active" : ""
+                      }`}
+                      id="review"
+                      role="tabpanel"
+                    >
+                      <div className="product__details-review">
+                        <div className="postbox__comments">
+                          <div className="postbox__comment-title mb-30">
+                            <h3>Reviews </h3>
+                          </div>
+                          <div className="latest-comments mb-30">
+                            <ul>
+                              <li>
+                                <div className="comments-box">
+                                  <div className="comments-avatar">
+                                    <img
+                                      src="assets/img/blog/comments/avater-1.png"
+                                      alt=""
+                                    ></img>
+                                  </div>
+                                  {product.reviewResponses?.map((item) => (
+                                    <div
+                                      className="comments-text"
+                                      key={item.id}
+                                    >
+                                      <div className="avatar-name">
+                                        <h5>{item.username}</h5>
+                                        <span>
+                                          {" "}
+                                          -{" "}
+                                          {formatDistanceToNow(
+                                            new Date(item.createdAt),
+                                            { addSuffix: true, locale: vi }
+                                          )}
+                                        </span>
+                                      </div>
+                                      <div className="user-rating">
+                                        <ul>
+                                          {[...Array(item.rating + 1)].map(
+                                            (_, index) => (
+                                              <li key={index}>
+                                                <a href="#">
+                                                  <i className="fas fa-star"></i>
+                                                </a>
+                                              </li>
+                                            )
+                                          )}
+                                          {[...Array(4 - item.rating)].map(
+                                            (_, index) => (
+                                              <li key={index}>
+                                                <a href="#">
+                                                  <i className="fal fa-star"></i>
+                                                </a>
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                      <p>{item.content}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="post-comments-form mb-100">
+                          <div className="post-comments-title mb-30">
+                            <h3>Your Review</h3>
+                            <div className="post-rating">
+                              <span>Your Rating :</span>
+                              <ul>
+                                {starSelect !== null &&
+                                starSelect !== undefined ? (
+                                  <>
+                                    {[...Array(starSelect + 1)].map(
+                                      (_, index) => {
+                                        return (
+                                          <li key={index}>
+                                            <a
+                                              onClick={(e) =>
+                                                handleRemoveStar(e, index)
+                                              }
+                                            >
+                                              <i className="fas fa-star"></i>
+                                            </a>
+                                          </li>
+                                        );
+                                      }
+                                    )}
+                                    {[...Array(5 - (starSelect + 1))].map(
+                                      (_, index) => {
+                                        return (
+                                          <li key={index}>
+                                            <a
+                                              onClick={(e) =>
+                                                handleSelectStar(e, index)
+                                              }
+                                            >
+                                              <i className="fal fa-star"></i>
+                                            </a>
+                                          </li>
+                                        );
+                                      }
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    {[...Array(5)].map((_, index) => {
+                                      return (
+                                        <li key={index}>
+                                          <a
+                                            href="#"
+                                            onClick={(e) =>
+                                              handleSelectStar(e, index)
+                                            }
+                                          >
+                                            <i className="fal fa-star"></i>
+                                          </a>
+                                        </li>
+                                      );
+                                    })}
+                                  </>
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                          <form
+                            id="contacts-form"
+                            className="conatct-post-form"
+                            onSubmit={(e) => handleSubmitReview(e)}
+                          >
+                            <div className="row">
+                              <div className="col-xl-12">
+                                <div className="contact-icon p-relative contacts-message">
+                                  <textarea
+                                    name="comments"
+                                    id="comments"
+                                    cols="30"
+                                    rows="10"
+                                    placeholder="Comments"
+                                    ref={ref}
+                                    onChange={(e) => handleSetContent(e)}
+                                  ></textarea>
+                                </div>
+                              </div>
+                              <div className="col-xl-12">
+                                <button className="os-btn os-btn-black">
+                                  Post comment
+                                </button>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>
