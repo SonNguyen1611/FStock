@@ -14,6 +14,7 @@ import com.example.Fstock.responsitory.CategoryRepository;
 import com.example.Fstock.responsitory.ProductRepository;
 import com.example.Fstock.responsitory.ProductVariantRepository;
 import com.example.Fstock.service.Service.ProductService;
+import com.example.Fstock.ultis.CloudinaryUltis;
 import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,8 @@ public class ProductServiceimpl implements ProductService {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private CloudinaryUltis cloudinaryUltis;
     @Autowired
     private  Cloudinary cloudinary;
 
@@ -221,12 +224,12 @@ public class ProductServiceimpl implements ProductService {
             productVariants.add(productVariant);
         });
         product.setProductVariants(productVariants);
-        product.setImageUrlDisplay(getImageUrlAfterUpload(createProductRequest.getImageUrlDisplay()));
+        product.setImageUrlDisplay(cloudinaryUltis.getImageUrlAfterUpload(createProductRequest.getImageUrlDisplay()));
         List<ProductImages> productImageList = new ArrayList<>();
         createProductRequest.getImages().forEach(multipartFile -> {
             try {
                 ProductImages productImages = new ProductImages();
-                String imageUrl = getImageUrlAfterUpload(multipartFile);
+                String imageUrl = cloudinaryUltis.getImageUrlAfterUpload(multipartFile);
                 productImages.setProductImagesUrl(imageUrl);
                 productImages.setProduct(product);
                 productImageList.add(productImages);
@@ -239,17 +242,7 @@ public class ProductServiceimpl implements ProductService {
         productRepository.save(product);
     }
 
-    public String getImageUrlAfterUpload(MultipartFile multipartFile) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.asMap("folder", "fstock"));
-        return (String) uploadResult.get("secure_url");
-    }
-    public String getPublicIdImageCloudinary(String imageUrl) {
-        String[] parts = imageUrl.split("/");
-        String imageName = parts[parts.length - 1].split("\\.")[0];
-        String folder = parts[parts.length - 2];
-        String publicId = folder + "/" + imageName;
-        return publicId;
-    }
+
 
     @Override
     @Transactional
@@ -259,12 +252,12 @@ public class ProductServiceimpl implements ProductService {
             throw new NotFoundException("Product not found");
         }
         String imageUrlDisplay = product.getImageUrlDisplay();
-        String publicIdImgDisplay = getPublicIdImageCloudinary(imageUrlDisplay);
+        String publicIdImgDisplay = cloudinaryUltis.getPublicIdImageCloudinary(imageUrlDisplay);
         List<String> urlImagesGallery = product.getProductImages().stream()
                 .map(ProductImages::getProductImagesUrl)
                 .collect(Collectors.toList());
         List<String> publicIdImagesGallery = urlImagesGallery.stream()
-                .map(url -> getPublicIdImageCloudinary(url))
+                .map(url -> cloudinaryUltis.getPublicIdImageCloudinary(url))
                 .collect(Collectors.toList());
         try{
             Map resultDisplay = cloudinary.uploader().destroy(publicIdImgDisplay, ObjectUtils.emptyMap());
@@ -304,13 +297,13 @@ public class ProductServiceimpl implements ProductService {
         });
         if (createProductRequest.getImageUrlDisplay() != null) {
             String imageUrlDisplay = product.getImageUrlDisplay();
-            String publicIdImgDisplay = getPublicIdImageCloudinary(imageUrlDisplay);
+            String publicIdImgDisplay = cloudinaryUltis.getPublicIdImageCloudinary(imageUrlDisplay);
             try {
                 Map resultDisplay = cloudinary.uploader().destroy(publicIdImgDisplay, ObjectUtils.emptyMap());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            product.setImageUrlDisplay((getImageUrlAfterUpload(createProductRequest.getImageUrlDisplay())));
+            product.setImageUrlDisplay((cloudinaryUltis.getImageUrlAfterUpload(createProductRequest.getImageUrlDisplay())));
 
         }
         if (createProductRequest.getImages() != null) {
@@ -318,7 +311,7 @@ public class ProductServiceimpl implements ProductService {
             List<ProductImages> productImageList = product.getProductImages();
             productImageList.forEach(productImages -> {
                 String imageUrl = productImages.getProductImagesUrl();
-                String publicIdImg = getPublicIdImageCloudinary(imageUrl);
+                String publicIdImg = cloudinaryUltis.getPublicIdImageCloudinary(imageUrl);
                 try {
                     Map resultDisplay = cloudinary.uploader().destroy(publicIdImg, ObjectUtils.emptyMap());
                 } catch (IOException e) {
@@ -331,7 +324,7 @@ public class ProductServiceimpl implements ProductService {
             createProductRequest.getImages().forEach(multipartFile -> {
                 try {
                     ProductImages productImages = new ProductImages();
-                    String imageUrl = getImageUrlAfterUpload(multipartFile);
+                    String imageUrl = cloudinaryUltis.getImageUrlAfterUpload(multipartFile);
                     productImages.setProductImagesUrl(imageUrl);
                     productImages.setProduct(product);
                     newProductImageList.add(productImages);

@@ -18,6 +18,7 @@ export const AuthProvider = ({children }) => {
         localStorage.removeItem('authToken');
         setUser(null);
     };
+    console.log("user", user);
 
     const isTokenExpired = async (token) => {
         try {
@@ -37,11 +38,13 @@ export const AuthProvider = ({children }) => {
                 const result = await isTokenExpired(token);
                 if (result) {
                     logout();
+                  
                 }
             }
         };
         checkToken();
     }, []);
+
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -55,6 +58,15 @@ export const AuthProvider = ({children }) => {
             }
         }
         setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if(user) {
+           if(user.active === false) {
+                logout();
+                console.log("Tài khoản của bạn bị khóa");
+           }    
+        }
     }, []);
     //loading biến đổi trạng thái loading, khi loading = true thì hiển thị loading spinner, khi loading = false thì hiển thị children
     return (

@@ -1,7 +1,9 @@
 package com.example.Fstock.service.Serviceimpl;
 
+import com.cloudinary.Cloudinary;
 import com.example.Fstock.dto.request.ChangeInfoRequest;
 import com.example.Fstock.dto.request.ChangePasswordRequest;
+import com.example.Fstock.dto.request.ChangeRolesRequest;
 import com.example.Fstock.dto.request.CreationUser;
 import com.example.Fstock.dto.response.OrderDto;
 import com.example.Fstock.dto.response.UserResponse;
@@ -9,6 +11,7 @@ import com.example.Fstock.entity.Order;
 import com.example.Fstock.entity.Roles;
 import com.example.Fstock.entity.User;
 import com.example.Fstock.entity.User_Roles;
+import com.example.Fstock.enums.Gender;
 import com.example.Fstock.exception.BadRequestException;
 import com.example.Fstock.exception.ConflictException;
 import com.example.Fstock.exception.InternalServerErrorException;
@@ -18,7 +21,9 @@ import com.example.Fstock.responsitory.RolesRepository;
 import com.example.Fstock.responsitory.UserRepository;
 import com.example.Fstock.responsitory.User_RoleRepository;
 import com.example.Fstock.service.Service.UserService;
+import com.example.Fstock.ultis.CloudinaryUltis;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,8 +33,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import javax.management.relation.Role;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceimpl implements UserService {
@@ -39,9 +46,14 @@ public class UserServiceimpl implements UserService {
     private User_RoleRepository userRoleRepository;
     @Autowired
     private UserMapper userMapper;
-
     @Autowired
     private RolesRepository rolesRepository;
+    @Autowired
+    private CloudinaryUltis cloudinaryUltis;
+    @Autowired
+    private Cloudinary cloudinary;
+    @Value("${avatar.default}")
+    private String avatarDefault;
 
 
     @Override
@@ -60,6 +72,13 @@ public class UserServiceimpl implements UserService {
         newUser.setPassword(passwordEncoder.encode(creationUser.getPassword()));
         newUser.setPhone(creationUser.getPhone());
         newUser.setUserName(creationUser.getUserName());
+        newUser.setImgUrlDisplay(avatarDefault);
+        if (creationUser.getGender() != null) {
+            newUser.setGender(creationUser.getGender());
+        }else {
+            newUser.setGender(Gender.OTHER);
+        }
+
         User savedUser = userRepository.save(newUser);
         if(savedUser == null) {
             throw new InternalServerErrorException("create user failed");
@@ -68,7 +87,7 @@ public class UserServiceimpl implements UserService {
         if (creationUser.getRoles() == null || creationUser.getRoles().isEmpty()) {
             User_Roles userRoles = new User_Roles();
             userRoles.setUser(newUser);
-            Roles role = rolesRepository.findByRoleName("USER");
+            Roles role = rolesRepository.findByRoleName("USER").orElseThrow(() -> new NotFoundException("Role not found"));
             userRoles.setRoles(role);
             userRoleRepository.save(userRoles);
         }
@@ -128,14 +147,50 @@ public class UserServiceimpl implements UserService {
     }
 
     @Override
-    public void changeInfo(ChangeInfoRequest changeInfoRequest) {
+    public void changeInfo(ChangeInfoRequest changeInfoRequest) throws IOException {
         User user = userRepository.findByEmail(changeInfoRequest.getEmail())
                 .orElseThrow(() ->  new NotFoundException("User not found"));
-
+        if (changeInfoRequest.getImgUrlDisplay() != null) {
+            user.setImgUrlDisplay(cloudinaryUltis.getImageUrlAfterUpload(changeInfoRequest.getImgUrlDisplay()));
+        }
         user.setUserName(changeInfoRequest.getUserName());
         user.setPhone(changeInfoRequest.getPhone());
-
         userRepository.save(user);
+    }
+
+    @Override
+    public void changeActiveStatus(String email, Boolean activeStatus) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        user.setActive(activeStatus);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changeRoles(ChangeRolesRequest changeRolesRequest) {
+        User user = userRepository.findByEmail(changeRolesRequest.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<Roles> roles = changeRolesRequest.getRoleNames().stream().map(name -> rolesRepository.findByRoleName(name)
+                .orElseThrow(() -> new NotFoundException("Role not found")))
+                .collect(Collectors.toList());
+
+        List<User_Roles> userRoles = user.getUserRoles();
+        userRoles.clear();
+        roles.forEach(role -> {
+            User_Roles userRole = new User_Roles();
+            userRole.setUser(user);
+            userRole.setRoles(role);
+            userRoles.add(userRole);
+        });
+        user.setUserRoles(userRoles);
+        userRepository.save(user);
+    }
+    @Override
+    public void deleteUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        userRepository.delete(user);
     }
 
 

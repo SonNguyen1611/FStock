@@ -255,12 +255,11 @@ const AdminAddProductPage = () => {
       });
 
       const res = await createProduct(dataSend);
-      console.log("Response:", res); // Debug response
       if (res.status === 200) {
         toast.success(res.data.message || "Tạo sản phẩm thành công");
       }
     } catch (error) {
-      console.error("Lỗi khi tạo sản phẩm:", error); // Debug lỗi chi tiết
+      console.error("Lỗi khi tạo sản phẩm:", error); 
       toast.error(
         error.response.data.message || "Có lỗi xảy ra khi tạo sản phẩm"
       );

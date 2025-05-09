@@ -40,7 +40,7 @@ public class CustomExceptionHandler {
                 .message(e.getMessage())
                 .build();
     }
-    // xung đột tài nguyên ( người dùng đã tồn taại ..)
+    // không có quyền truy cập
     @ExceptionHandler(UnAuthorizedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleUnAuthorizedException(UnAuthorizedException e, WebRequest request) {

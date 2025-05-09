@@ -2,6 +2,7 @@ package com.example.Fstock.controller;
 
 import com.example.Fstock.dto.request.ChangeInfoRequest;
 import com.example.Fstock.dto.request.ChangePasswordRequest;
+import com.example.Fstock.dto.request.ChangeRolesRequest;
 import com.example.Fstock.dto.request.CreationUser;
 import com.example.Fstock.dto.response.ApiResponse;
 import com.example.Fstock.dto.response.UserResponse;
@@ -17,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -35,9 +37,7 @@ public class UserController {
                 .message("User Created")
                 .build());
 
-
     }
-
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable int id) {
         UserResponse userResponse = userService.getUserById(id);
@@ -74,13 +74,42 @@ public class UserController {
                 .message("Change password success")
                 .build());
     }
-    @PostMapping("/change-info")
-    public ResponseEntity<ApiResponse> changeInfo(@RequestBody @Valid ChangeInfoRequest changeInfoRequest) {
+
+    @PutMapping(value = "/change-info", consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse> changeInfo(@ModelAttribute @Valid ChangeInfoRequest changeInfoRequest) throws IOException {
         userService.changeInfo(changeInfoRequest);
         return ResponseEntity.ok(ApiResponse.builder()
                 .message("Change info success")
                 .build());
     }
+
+    @PutMapping(value = "/change-active-status")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse> changeActiveStatus(@RequestParam("email") String email,
+                                                          @RequestParam("status") Boolean activeStatus){
+        userService.changeActiveStatus(email, activeStatus);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change info success")
+                .build());
+    }
+    @PutMapping(value = "/change-roles")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse> changeRoles(@RequestBody ChangeRolesRequest changeRolesRequest) {
+        userService.changeRoles(changeRolesRequest);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change role success")
+                .build());
+    }
+
+    @DeleteMapping(value = "/delete/{email}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse> changeRoles(@PathVariable String email) {
+        userService.deleteUser(email);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change role success")
+                .build());
+    }
+
 
 
 

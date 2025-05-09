@@ -6330,3 +6330,24 @@ section {
   position: fixed !important;
   z-index: 9999;
 }
+.role-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-box {
+  position: absolute;
+  right: 100%; /* xuất hiện bên phải */
+  top: 0;
+  background-color: #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: none;
+  z-index: 100;
+}
+
+.role-container:hover .tooltip-box {
+  display: block;
+}

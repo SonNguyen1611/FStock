@@ -21,7 +21,8 @@ import AfterOrderPage from "../pages/AfterOrderPage.jsx";
 import NewOrderPage from "../pages/AdminPage.jsx/Order/NewOrderPage.jsx";
 import OrderDetailPage from "../pages/OrderDetailPage.jsx";
 import OrderManagePage from "../pages/AdminPage.jsx/Order/OrderManagePage.jsx";
-import CustomerManagementPage from "../pages/AdminPage.jsx/Customer/CustomerManagementPage.jsx";
+import AccountMangementPage from "../pages/AdminPage.jsx/Account/AccountManagementPage.jsx";
+import ErrorPage from "../pages/ErrorPage.jsx";
 
 const routers = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const routers = createBrowserRouter([
   {
     path: "/register",
     element: <LayoutUser Component={RegisterPage}></LayoutUser>,
+  },
+  {
+    path: "/error",
+    element: <LayoutUser Component={ErrorPage}></LayoutUser>,
   },
   {
     path: "/cart",
@@ -78,7 +83,6 @@ const routers = createBrowserRouter([
     ),
   },
 
-
   {
     path: "/checkout/success",
     element: (
@@ -87,6 +91,7 @@ const routers = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
 
   {
     path: "/admin/home",
@@ -161,10 +166,10 @@ const routers = createBrowserRouter([
     ),
   },
   {
-    path: "/admin/customer-management",
+    path: "/admin/account-management",
     element: (
       <AdminRoute>
-        <LayoutAdmin Component={CustomerManagementPage} />
+        <LayoutAdmin Component={AccountMangementPage} />
       </AdminRoute>
     ),
   },

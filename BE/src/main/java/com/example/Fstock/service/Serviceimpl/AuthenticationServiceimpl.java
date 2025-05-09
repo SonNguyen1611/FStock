@@ -57,14 +57,15 @@ public class AuthenticationServiceimpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
-       User user = userRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-
+        User user = userRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
+        if (user.getActive() == false) {
+            throw new UnAuthorizedException("Account disabled");
+        }
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         boolean authenticated = passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword());
         if (!authenticated) {
             throw new UnAuthorizedException("Password and Email incorrect");
         }
-
         String token = generateJwtToken(user);
 
         return  AuthenticationResponse.builder()

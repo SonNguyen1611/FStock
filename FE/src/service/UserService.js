@@ -19,12 +19,27 @@ export const changePassword = (data , email) => {
      
     });
 }
-export const changeInfo = (data , email) => {
-    return api.post(`/users/change-info`, { 
-        userName: data.userName, 
-        phone: data.phone,
-        address: data.address,
-        email:email,
-     
+export const changeInfo = (data) => {
+    return api.put(`/users/change-info`, data , { 
+       headers: {
+            "Content-Type": "multipart/form-data",
+        },
     });
+};
+export const changeActiveStatus = (email, status) => {
+    return api.put(`/users/change-active-status`,null, {
+        params: {
+            email: email,
+            status: status,
+        },
+    });
+}
+export const changeRoles = (email, roleNames) => {
+    return api.put(`/users/change-roles`,{
+        email: email,
+        roleNames: roleNames,
+    });
+}
+export const deleteUser = (email) => {
+    return api.delete(`/users/delete/${email}`);
 };

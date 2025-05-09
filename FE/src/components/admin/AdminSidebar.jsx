@@ -184,111 +184,36 @@ const AdminSidebar = () => {
               className="nav-link has-arrow  collapsed "
               href="#!"
               data-bs-toggle="collapse"
-              data-bs-target="#navCustomer"
+              data-bs-target="#navAccount"
               aria-expanded="false"
-              aria-controls="navCustomer"
+              aria-controls="navAccount"
             >
               <i className="nav-icon me-2 icon-xxs bi bi-person"></i>
-              Customer
-            </a>
-
-            <div
-              id="navCustomer"
-              className="collapse "
-              data-bs-parent="#sideNavbar"
-            >
-              <ul className="nav flex-column">
-                <li className="nav-item">
-                  <a className="nav-link has-arrow " href="#">
-                    Customer Management
-                  </a>
-                </li>
-                
-              </ul>
-            </div>
-          </li>
-          <li className="nav-item">
-            <a
-              className="nav-link  collapsed "
-              href="#!"
-              data-bs-toggle="collapse"
-              data-bs-target="#navProject"
-              aria-expanded="false"
-              aria-controls="navProject"
-            >
-              <i className="nav-icon me-2 icon-xxs bi bi-person-vcard-fill"></i>
               Account
             </a>
-            <div
-              id="navProject"
-              className="collapse "
-              data-bs-parent="#sideNavbar"
-            >
-              <ul className="nav flex-column">
-                <li className="nav-item">
-                  <a className="nav-link " href="../pages/project-grid.html">
-                    Manage Account
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </li>
-          <li className="nav-item">
-            <a
-              className="nav-link has-arrow  collapsed "
-              href="#!"
-              data-bs-toggle="collapse"
-              data-bs-target="#navimport"
-              aria-expanded="false"
-              aria-controls="navimport"
-            >
-              <i className="nav-icon me-2 icon-xxs bi bi-file-plus-fill"></i>
-              Import
-            </a>
 
             <div
-              id="navimport"
-              className="collapse "
-              data-bs-parent="#sideNavbar"
-            >
-              <ul className="nav flex-column">
-                <li className="nav-item">
-                  <a className="nav-link has-arrow " href="#">
-                    Imports
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </li>
-          <li className="nav-item">
-            <a
-              className="nav-link  collapsed "
-              href="#!"
-              data-bs-toggle="collapse"
-              data-bs-target="#navExport"
-              aria-expanded="false"
-              aria-controls="navExport"
-            >
-              <i className="nav-icon me-2 icon-xxs bi bi-file-minus-fill"></i>
-              Export
-            </a>
-            <div
-              id="navExport"
+              id="navAccount"
               className="collapse "
               data-bs-parent="#sideNavbar"
             >
               <ul className="nav flex-column">
                 <li className="nav-item">
                   <a
-                    className="nav-link "
-                    href="../pages/profile-overview.html"
+                    className="nav-link has-arrow "
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigator("/admin/account-management");
+                    }}
                   >
-                    Exports
+                    Account Management
                   </a>
                 </li>
               </ul>
             </div>
           </li>
+         
           <li className="nav-item">
             <div className="navbar-heading">Authentication</div>
           </li>
